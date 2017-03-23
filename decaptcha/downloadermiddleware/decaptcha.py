@@ -4,6 +4,7 @@ from scrapy import log, signals
 from scrapy.exceptions import IgnoreRequest, NotConfigured
 from scrapy.utils.misc import load_object
 from twisted.internet.defer import maybeDeferred
+from urlparse import urlparse
 
 
 class DecaptchaMiddleware(object):
@@ -22,6 +23,7 @@ class DecaptchaMiddleware(object):
             self.settings.getlist('DECAPTCHA_SOLVER')
         )[:1] or [None]
         self.enabled = self.settings.getbool('DECAPTCHA_ENABLED')
+        self.domains = self.settings.getlist('DECAPTCHA_DOMAINS')
         self.paused = False
         self.queue = []
         if not self.enabled:
@@ -33,10 +35,19 @@ class DecaptchaMiddleware(object):
         crawler.signals.connect(self.spider_idle,
                                 signal=signals.spider_idle)
 
+    def is_captcha_domian(self, request):
+        if self.domains:
+            parsed_url = urlparse(request.url)
+            for d in self.domains:
+                if d in parsed_url.netloc:
+                    return True
+            return False
+        return True
+
     def process_request(self, request, spider):
         if request.meta.get('captcha_request', False):
             return
-        if self.paused:
+        if self.paused and self.is_captcha_domain(request):
             self.queue.append((request, spider))
             raise IgnoreRequest('Crawling paused, because CAPTCHA is '
                                 'being solved')
@@ -44,14 +55,14 @@ class DecaptchaMiddleware(object):
     def process_response(self, request, response, spider):
         if request.meta.get('captcha_request', False):
             return response
-        if self.paused:
+        if self.paused and self.is_captcha_domain(request):
             self.queue.append((request, spider))
             raise IgnoreRequest('Crawling paused, because CAPTCHA is '
                                 'being solved')
         # A hack to have access to .meta attribute in engines and solvers
         response.request = request
         for engine in self.engines:
-            if engine.has_captcha(response):
+            if self.is_captcha_domain(request) and engine.has_captcha(response):
                 log.msg('CAPTCHA detected, getting CAPTCHA image')
                 self.pause_crawling()
                 self.queue.append((request, spider))
