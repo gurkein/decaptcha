@@ -35,7 +35,7 @@ class DecaptchaMiddleware(object):
         crawler.signals.connect(self.spider_idle,
                                 signal=signals.spider_idle)
 
-    def is_captcha_domian(self, request):
+    def is_captcha_domain(self, request):
         if self.domains:
             parsed_url = urlparse(request.url)
             for d in self.domains:
