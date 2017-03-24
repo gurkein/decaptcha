@@ -43,7 +43,7 @@ class RecaptchaEngine(object):
         if img_src is None:
             sitekey = sel.xpath(self.CAPTCHA_SITEKEY_XPATH).extract()
             if sitekey:
-                logger.info("sitekey=%s" + sitekey[0])
+                logger.info("sitekey=%s", sitekey[0])
             raise DecaptchaError('No //img/@src found on CAPTCHA page')
         img_url = urljoin(form_response.url, img_src)
         img_request = scrapy.Request(img_url)
