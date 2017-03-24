@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class RecaptchaEngine(object):
 
     CAPTCHA_XPATH = '//iframe[contains(@src, "google.com/recaptcha/api")]/@src'
-    CAPTCHA_FORM_XPATH = '//form[/script/contains(@src, "google.com/recaptcha/api")]'
+    CAPTCHA_FORM_XPATH = '//form[script/contains(@src, "google.com/recaptcha/api")]'
 
     def __init__(self, crawler):
         self.crawler = crawler
