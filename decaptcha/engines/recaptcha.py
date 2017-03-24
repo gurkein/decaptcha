@@ -29,6 +29,7 @@ class RecaptchaEngine(object):
         if form:
             container = form[0]
             form_response = response
+            captcha_field = 'captcha'
         else:
             iframe_src = sel.xpath(self.CAPTCHA_XPATH).extract()[0]
             iframe_url = urljoin(response.url, iframe_src)
@@ -36,6 +37,7 @@ class RecaptchaEngine(object):
             iframe_response = yield download(self.crawler, iframe_request)
             container = scrapy.Selector(iframe_response)
             form_response = iframe_response
+            captcha_field = 'recaptcha_response_field'
         img_src, = container.xpath('//img/@src').extract()[:1] or [None]
         if img_src is None:
             raise DecaptchaError('No //img/@src found on CAPTCHA page')
@@ -47,19 +49,24 @@ class RecaptchaEngine(object):
         logger.info('CAPTCHA solved: %s' % captcha_text)
         challenge_request = scrapy.FormRequest.from_response(
             form_response, formxpath='//form',
-            formdata={'recaptcha_response_field': captcha_text}
+            formdata={captcha_field: captcha_text}
         )
         challenge_response = yield download(self.crawler, challenge_request)
-        challenge_sel = scrapy.Selector(challenge_response)
-        challenge, = challenge_sel.xpath(
-            '//textarea/text()'
-        ).extract()[:1] or [None]
-        if not challenge:
-            raise DecaptchaError('Bad challenge from reCAPTCHA API:\n%s' %
-                                 challenge_response.body)
-        logger.info('CAPTCHA solved, submitting challenge')
-        submit_request = scrapy.FormRequest.from_response(
-            response, formxpath='//form[.%s]' % self.CAPTCHA_XPATH,
-            formdata={'recaptcha_challenge_field': challenge}
-        )
-        yield download(self.crawler, submit_request)
+        if form:
+            if not challenge_response.status == 200:
+                raise DecaptchaError('Bad challenge from reCAPTCHA API:\n%s' %
+                                     challenge_response.body)
+        else:
+            challenge_sel = scrapy.Selector(challenge_response)
+            challenge, = challenge_sel.xpath(
+                '//textarea/text()'
+            ).extract()[:1] or [None]
+            if not challenge:
+                raise DecaptchaError('Bad challenge from reCAPTCHA API:\n%s' %
+                                     challenge_response.body)
+            logger.info('CAPTCHA solved, submitting challenge')
+            submit_request = scrapy.FormRequest.from_response(
+                response, formxpath='//form[.%s]' % self.CAPTCHA_XPATH,
+                formdata={'recaptcha_challenge_field': challenge}
+            )
+            yield download(self.crawler, submit_request)
