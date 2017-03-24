@@ -67,7 +67,8 @@ class DecaptchaMiddleware(object):
             if self.is_captcha_domain(request) and engine.has_captcha(response):
                 logger.info('CAPTCHA detected, getting CAPTCHA image')
                 self.pause_crawling()
-                self.queue.append((request, spider))
+                # self.queue.append((request, spider))
+                # engine should handle
                 dfd = maybeDeferred(engine.handle_captcha,
                                     response=response, solver=self.solver)
                 dfd.addCallback(self.captcha_handled)

@@ -69,4 +69,5 @@ class RecaptchaEngine(object):
                 response, formxpath='//form[.%s]' % self.CAPTCHA_XPATH,
                 formdata={'recaptcha_challenge_field': challenge}
             )
-            yield download(self.crawler, submit_request)
+            submit_response = yield download(self.crawler, submit_request)
+            yield download(self.crawler, response.request)
