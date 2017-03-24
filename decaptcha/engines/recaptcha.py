@@ -14,6 +14,7 @@ class RecaptchaEngine(object):
 
     CAPTCHA_XPATH = '//iframe[contains(@src, "google.com/recaptcha/api")]/@src'
     CAPTCHA_FORM_XPATH = '//form[script[contains(@src, "google.com/recaptcha/api")]]'
+    CAPTCHA_SITEKEY_XPATH = '//*[@id="recaptcha"]/@data-sitekey'
 
     def __init__(self, crawler):
         self.crawler = crawler
@@ -40,6 +41,9 @@ class RecaptchaEngine(object):
             captcha_field = 'recaptcha_response_field'
         img_src, = container.xpath('//img/@src').extract()[:1] or [None]
         if img_src is None:
+            sitekey = sel.xpath(self.CAPTCHA_SITEKEY_XPATH).extract()
+            if sitekey:
+                logger.info("sitekey=%s" + sitekey[0])
             raise DecaptchaError('No //img/@src found on CAPTCHA page')
         img_url = urljoin(form_response.url, img_src)
         img_request = scrapy.Request(img_url)
