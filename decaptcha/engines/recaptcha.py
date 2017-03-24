@@ -1,13 +1,13 @@
 from urlparse import urljoin
 
+import logging
 import scrapy
 from twisted.internet.defer import inlineCallbacks
 
 from decaptcha.exceptions import DecaptchaError
 from decaptcha.utils.download import download
-from logging import getLogger
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class RecaptchaEngine(object):

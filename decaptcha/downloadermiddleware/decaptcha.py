@@ -1,13 +1,12 @@
 """Stub for implementing DeathByCaptcha service"""
-
+import logging
 from scrapy import signals
 from scrapy.exceptions import IgnoreRequest, NotConfigured
 from scrapy.utils.misc import load_object
 from twisted.internet.defer import maybeDeferred
 from urlparse import urlparse
-form logging import getLogger
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class DecaptchaMiddleware(object):
