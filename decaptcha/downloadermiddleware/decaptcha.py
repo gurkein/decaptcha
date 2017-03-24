@@ -1,10 +1,13 @@
 """Stub for implementing DeathByCaptcha service"""
 
-from scrapy import log, signals
+from scrapy import signals
 from scrapy.exceptions import IgnoreRequest, NotConfigured
 from scrapy.utils.misc import load_object
 from twisted.internet.defer import maybeDeferred
 from urlparse import urlparse
+form logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class DecaptchaMiddleware(object):
@@ -63,7 +66,7 @@ class DecaptchaMiddleware(object):
         response.request = request
         for engine in self.engines:
             if self.is_captcha_domain(request) and engine.has_captcha(response):
-                log.msg('CAPTCHA detected, getting CAPTCHA image')
+                logger.info('CAPTCHA detected, getting CAPTCHA image')
                 self.pause_crawling()
                 self.queue.append((request, spider))
                 dfd = maybeDeferred(engine.handle_captcha,
@@ -88,11 +91,11 @@ class DecaptchaMiddleware(object):
         self.resume_crawling()
 
     def captcha_handled(self, _):
-        log.msg('CAPTCHA handled, resuming crawling')
+        logger.info('CAPTCHA handled, resuming crawling')
         self.resume_crawling()
 
     def captcha_handle_error(self, failure):
-        log.msg('CAPTCHA handle error: {}'.format(failure))
+        logger.info('CAPTCHA handle error: {}'.format(failure))
         self.resume_crawling()
 
     def _load_objects(self, classpaths):

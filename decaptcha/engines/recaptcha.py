@@ -5,6 +5,9 @@ from twisted.internet.defer import inlineCallbacks
 
 from decaptcha.exceptions import DecaptchaError
 from decaptcha.utils.download import download
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class RecaptchaEngine(object):
@@ -32,9 +35,9 @@ class RecaptchaEngine(object):
         img_url = urljoin(iframe_response.url, img_src)
         img_request = scrapy.Request(img_url)
         img_response = yield download(self.crawler, img_request)
-        scrapy.log.msg('CAPTCHA image downloaded, solving')
+        logger.info('CAPTCHA image downloaded, solving')
         captcha_text = yield solver.solve(img_response.body)
-        scrapy.log.msg('CAPTCHA solved: %s' % captcha_text)
+        logger.info('CAPTCHA solved: %s' % captcha_text)
         challenge_request = scrapy.FormRequest.from_response(
             iframe_response, formxpath='//form',
             formdata={'recaptcha_response_field': captcha_text}
@@ -47,7 +50,7 @@ class RecaptchaEngine(object):
         if not challenge:
             raise DecaptchaError('Bad challenge from reCAPTCHA API:\n%s' %
                                  challenge_response.body)
-        scrapy.log.msg('CAPTCHA solved, submitting challenge')
+        logger.info('CAPTCHA solved, submitting challenge')
         submit_request = scrapy.FormRequest.from_response(
             response, formxpath='//form[.%s]' % self.CAPTCHA_XPATH,
             formdata={'recaptcha_challenge_field': challenge}
