@@ -24,6 +24,9 @@ class DecaptchaMiddleware(object):
         self.solver, = self._load_objects(
             self.settings.getlist('DECAPTCHA_SOLVER')
         )[:1] or [None]
+        self.v2_solver, = self._load_objects(
+            self.settings.getlist('DECAPTCHA_V2_SOLVER')
+        )[:1] or [None]
         self.enabled = self.settings.getbool('DECAPTCHA_ENABLED')
         self.domains = self.settings.getlist('DECAPTCHA_DOMAINS')
         self.paused = False
@@ -70,7 +73,7 @@ class DecaptchaMiddleware(object):
                 # self.queue.append((request, spider))
                 # engine should handle
                 dfd = maybeDeferred(engine.handle_captcha,
-                                    response=response, solver=self.solver)
+                                    response=response, solver=self.solver, v2_solver=self.v2_solver)
                 dfd.addCallback(self.captcha_handled)
                 dfd.addErrback(self.captcha_handle_error)
                 raise IgnoreRequest('Response ignored, because CAPTCHA '
