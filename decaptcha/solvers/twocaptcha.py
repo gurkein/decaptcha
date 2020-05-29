@@ -20,13 +20,15 @@ class TwoCaptchaSolver(object):
         self.api_url = 'http://2captcha.com/'
 
     @inlineCallbacks
-    def solve(self, site_key, page_url):
+    def solve(self, site_key, page_url, data_s=None):
         formdata = {
             'key': self.apikey,
             'method': 'userrecaptcha',
             'googlekey': site_key,
             'pageurl': page_url
         }
+        if data_s:
+            formdata['data-s'] = data_s
         request = scrapy.FormRequest(self.api_url + 'in.php', formdata=formdata)
         response = yield download(self.crawler, request)
         try:

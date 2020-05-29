@@ -15,6 +15,7 @@ class RecaptchaEngine(object):
     CAPTCHA_XPATH = '//iframe[contains(@src, "google.com/recaptcha/api")]/@src'
     CAPTCHA_FORM_XPATH = '//form[script[contains(@src, "google.com/recaptcha/api")]]'
     CAPTCHA_SITEKEY_XPATH = '//*[@id="recaptcha"]/@data-sitekey'
+    CAPTCHA_DATA_S_XPATH = '//*[@id="recaptcha"]/@data-s'
 
     def __init__(self, crawler):
         self.crawler = crawler
@@ -45,11 +46,13 @@ class RecaptchaEngine(object):
             if not site_key:
                 raise DecaptchaError('No //img/@src found on CAPTCHA page and no sitekey found')
             site_key = site_key[0]
-            logger.info("RECAPTCHA v2 found: sitekey=%s", site_key)
+            data_s = sel.xpath(self.CAPTCHA_DATA_S_XPATH).extract()
+            data_s = data_s[0] if data_s else None
+            logger.info("RECAPTCHA v2 found: sitekey=%s data-s=%s", site_key, data_s)
             # v2_solver needed
             if not v2_solver:
                 raise DecaptchaError('No //img/@src found on CAPTCHA page and no recaptcha v2 solver found')
-            challange = yield v2_solver.solve(site_key, response.url)
+            challange = yield v2_solver.solve(site_key, response.url, data_s)
             submit_request = scrapy.FormRequest.from_response(
                 response, formxpath=self.CAPTCHA_FORM_XPATH,
                 formdata={'g-recaptcha-response': challange}
