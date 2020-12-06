@@ -59,7 +59,7 @@ class RecaptchaEngine(object):
             # )
             # submit_response = yield download(self.crawler, submit_request)
             # yield download(self.crawler, response.request)
-            new_url = response.url + '?g-recaptcha-response=' + challenge
+            new_url = response.url + '&g-recaptcha-response=' + challenge
             yield download(self.crawler, response.request.replace(url=new_url))
         else:
             img_url = urljoin(form_response.url, img_src)
