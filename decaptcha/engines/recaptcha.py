@@ -52,13 +52,15 @@ class RecaptchaEngine(object):
             # v2_solver needed
             if not v2_solver:
                 raise DecaptchaError('No //img/@src found on CAPTCHA page and no recaptcha v2 solver found')
-            challange = yield v2_solver.solve(site_key, response.url, data_s)
-            submit_request = scrapy.FormRequest.from_response(
-                response, formxpath=self.CAPTCHA_FORM_XPATH,
-                formdata={'g-recaptcha-response': challange}
-            )
-            submit_response = yield download(self.crawler, submit_request)
-            yield download(self.crawler, response.request)
+            challenge = yield v2_solver.solve(site_key, response.url, data_s)
+            # submit_request = scrapy.FormRequest.from_response(
+            #     response, formxpath=self.CAPTCHA_FORM_XPATH,
+            #     formdata={'g-recaptcha-response': challange}
+            # )
+            # submit_response = yield download(self.crawler, submit_request)
+            # yield download(self.crawler, response.request)
+            new_url = response.url + '?g-recaptcha-response=' + challenge
+            yield download(self.crawler, response.request.replace(url=new_url))
         else:
             img_url = urljoin(form_response.url, img_src)
             img_request = scrapy.Request(img_url)
