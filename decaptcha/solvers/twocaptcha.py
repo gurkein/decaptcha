@@ -46,6 +46,7 @@ class TwoCaptchaSolver(object):
                     result = poll_response.body.split('|')[1]
                     returnValue(result)
                 except Exception:
+                    # ERROR_CAPTCHA_UNSOLVABLE
                     raise CaptchaIncorrectlySolved('2captcha returned non-parsable captcha poll response ({}): {}'
                                                    .format(poll_response.status,
                                                            poll_response.body))

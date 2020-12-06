@@ -100,6 +100,7 @@ class DecaptchaMiddleware(object):
     def captcha_handle_error(self, failure):
         logger.info('CAPTCHA handle error: {}'.format(failure))
         self.resume_crawling()
+        return failure
 
     def _load_objects(self, classpaths):
         objs = []
